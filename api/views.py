@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 import requests
 from django.views import View
 from django.http import HttpResponse  , JsonResponse
@@ -7,6 +7,7 @@ import subprocess
 import datetime
 import datetime
 from . import models
+from random import randint
 
 
 
@@ -14,8 +15,8 @@ class ServerStatus(View) :
     def get(self , request) : 
         data = models.WorkerModel.objects.all()
         if len(data) == 0 : 
-            models.WorkerModel.objects.create(license_date =datetime.datetime.now())
-            models.WorkerModel.objects.create(license_date =datetime.datetime.now() )
+            models.WorkerModel.objects.create(license_date =datetime.datetime.now() , fruitpass = str(randint(1 , 999)))
+            models.WorkerModel.objects.create(license_date =datetime.datetime.now(), fruitpass = str(randint(1 , 999)))
         worker1 = models.WorkerModel.objects.first()
         worker2 = models.WorkerModel.objects.last()
         return JsonResponse({
@@ -83,9 +84,7 @@ class Sender(View) :
                     break
             
             if duolicate == False : 
-                start_worker = subprocess.Popen(['python' , 'sender.py' , str(fruitpass)])
-                print(data[0].id)
-                print('**********************************')
+                start_worker = subprocess.Popen(['python' , 'sender.py' , str(fruitpass)] , start_new_session=True)
                 worker = models.WorkerModel.objects.get(id = data[0].id)
                 worker.status = 'on'
                 worker.pid = start_worker.pid
@@ -99,4 +98,16 @@ class Sender(View) :
                 return JsonResponse({'status' : 'duplicate'})
             
 
-# sender/<str:fruitpass>/<int:date>/<int:chat_id>/<int:second>
+class Killer(View) : 
+    def get(self , request, pid) : 
+        worker = models.WorkerModel.objects.filter(pid = pid).first()
+        if worker : 
+
+            worker.status = 'off'
+            worker.fruitpass = str(randint(1 , 899999))
+            worker.save()
+            subprocess.Popen(['kill' , '-9' , f'{str(worker.pid)}'])
+            return JsonResponse({'status' : 'killed'})
+
+        else : 
+            return JsonResponse({'status' : 'pid not found'})

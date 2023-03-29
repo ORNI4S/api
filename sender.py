@@ -12,12 +12,14 @@ import sys
 from os import system, name
 import httpx
 import time
+from subprocess import PIPE, Popen
+
 from threading import Thread
 import logging
 from api.models import WorkerModel
 from datetime import datetime
 import pytz
-
+import random
 
 
 fruitpass = sys.argv[1]
@@ -35,9 +37,24 @@ def Num1():
         worker = WorkerModel.objects.get(fruitpass = fruitpass)
         delta = worker.license_date -datetime.today().date()
         if delta.days >= 0 :
+            if worker.status == 'on' : 
 ###################################################### your code ############################################################
-            print(worker.fruitpass)
-            print(time.sleep(worker.second))
+            # process = subprocess.Popen(['cat', f'/proc/{str(worker.pid)}/status'], stdout=PIPE, stderr=None, shell=True)
+            # output = process.communicate()[0].decode("utf-8")
+                print(random.randint(1 , 444444))
+                time.sleep(worker.second)
+
+
+                print('###################################################')
+            else : 
+                break
+            
+            # fucker = check_pid.communicate()
+            # print(len(fucker))
+            # print(fucker)
+            # print(f'REAL : ' + str(len(check_pid)))
+            # print(f'TEST : ' + str(len(test)))
+            # print(worker.fruitpass)
 
             # tz_London = pytz.timezone('Asia/Tehran')
             # datetime_London = datetime.now(tz_London)
