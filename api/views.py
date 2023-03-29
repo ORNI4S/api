@@ -1,61 +1,103 @@
-from django.conf import settings
-import django_api.settings as app_settings
-settings.configure(INSTALLED_APPS=app_settings.INSTALLED_APPS,DATABASES=app_settings.DATABASES)
-import django
-django.setup()
+from django.shortcuts import render, get_object_or_404
+import requests
+from django.views import View
+from django.http import HttpResponse  , JsonResponse
 import json
 import subprocess
-import requests
-from requests import post , get
-import os
-import sys
-from os import system, name
-import httpx
-import time
-from subprocess import PIPE, Popen
-import logging
-from api.models import WorkerModel
-from datetime import datetime
+import datetime
+import datetime
+from . import models
+from random import randint
 
 
-fruitpass = sys.argv[1]
-logging.basicConfig(level=logging.INFO ,format='%(asctime)s - %(funcName)s - %(message)s')
-def Num1():
 
-    while True:
-        worker = WorkerModel.objects.get(fruitpass = fruitpass)
-        delta = worker.license_date -datetime.today().date()
-        if delta.days >= 0 :
-            if worker.status == 'on' : 
-                try : 
+class ServerStatus(View) : 
+    def get(self , request) : 
+        data = models.WorkerModel.objects.all()
+        if len(data) == 0 : 
+            models.WorkerModel.objects.create(license_date =datetime.datetime.now() , fruitpass = str(randint(1 , 999)))
+            models.WorkerModel.objects.create(license_date =datetime.datetime.now(), fruitpass = str(randint(1 , 999)))
+        worker1 = models.WorkerModel.objects.first()
+        worker2 = models.WorkerModel.objects.last()
+        return JsonResponse({
+            'status' : 'on' ,
 
-                    r ={'User-Agent' : "Dalvik/2.1.0 (Linux; U; Android 11; SM-A326B Build/TP1A.220624.014)" ,'Connection':'close','Content-Type':"application/x-www-form-urlencoded" ,'Cookie':"FRUITPASSPORT="f"{worker.fruitpass}"}
-                    p = {'edata' :'Gk4KXVpRXRJDSEMTfmMXSA=='}
-                    st = httpx.post('http://iran.fruitcraft.ir/cards/collectgold' , data=p,headers=r)
-                    uu = httpx.get('http://iran.fruitcraft.ir/cards/collectgold', headers=r)
-                    logging.info('*** SENDED ***')
-                    time.sleep(worker.second)
-                    
-                except : 
-                    logging.info('error fruitpass .')
-                    break
-                
-                
-            else : 
-                logging.info('workder khamoshe .')
-
-                break
+            f'worker1' : {
+            f'status' : worker1.status , 
+            f'pid' : worker1.pid , 
+            f'chat_id' : worker1.chat_id ,
+            f'license_date' : worker1.license_date , 
+            f'fruitpass' : worker1.fruitpass , 
+            f'second' : worker1.second
             
+                        } , 
+            f'worker2' : {
+            
+            f'status' : worker2.status , 
+            f'pid' : worker2.pid , 
+            f'chat_id' : worker2.chat_id  ,
+            f'license_date' : worker2.license_date , 
+            f'fruitpass' : worker2.fruitpass , 
+            f'second' : worker2.second
+              }
+
+                             })
+    
+
+class UserInfo(View) : 
+    def get(self, request , fruitpass) :
+        NameOP= {'User-Agent' : "Dalvik/2.1.0 (Linux; U; Android 13; SM-A326B Build/TP1A.220624.014)" ,'Connection':'close','Content-Type':"application/x-www-form-urlencoded" ,'Cookie':"FRUITPASSPORT="f"{fruitpass}"}
+        data = requests.get('http://iran.fruitcraft.ir/cards/collectgold' , headers = NameOP)
+        content = data.content
+        if len(content) < 500 : 
+            redata = json.loads(data.content)
+            return JsonResponse(redata)
         else : 
-            logging.info('user eshterak nadare .')
+            print(content)
+            return JsonResponse({'status' : 'error'})
+
+
+class Sender(View) : 
+    def get(self , reqeust , fruitpass , date , chat_id , second) : 
+        data = models.WorkerModel.objects.filter(status ='off')
+       
+        if len(data) == 0 : 
+            return JsonResponse({'status' : 'False'})
+        
+        elif len(data) != 0 : 
+            check = models.WorkerModel.objects.all()
+            duolicate = False
+
+            for i in check : 
+                if i.fruitpass == fruitpass : 
+                    duolicate = True
+                    break
+            
+            if duolicate == False : 
+                start_worker = subprocess.Popen(['python' , 'sender.py' , str(fruitpass)] , start_new_session=True)
+                worker = models.WorkerModel.objects.get(id = data[0].id)
+                worker.status = 'on'
+                worker.pid = start_worker.pid
+                worker.chat_id = chat_id
+                worker.license_date = datetime.datetime.now() + datetime.timedelta(days=date)
+                worker.fruitpass = fruitpass
+                worker.second = second
+                worker.save()
+                return JsonResponse({'status' : 'bot running'})
+            else : 
+                return JsonResponse({'status' : 'duplicate'})
+            
+
+class Killer(View) : 
+    def get(self , request, pid) : 
+        worker = models.WorkerModel.objects.filter(pid = pid).first()
+        if worker : 
+
             worker.status = 'off'
-            worker.pid = 0
-            worker.chat_id = 0
-            worker.license_date = datetime.now()
-            worker.fruitpass = 'None'
-            worker.second = 0
+            worker.fruitpass = str(randint(1 , 899999))
             worker.save()
             subprocess.Popen(['kill' , '-9' , f'{str(worker.pid)}'])
-            break
+            return JsonResponse({'status' : 'killed'})
 
-Num1()
+        else : 
+            return JsonResponse({'status' : 'pid not found'})
