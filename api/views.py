@@ -74,7 +74,7 @@ class Sender(View) :
         if len(data) == 0 : 
             return JsonResponse({'status' : 'False'})
         
-        elif len(data) is not 0 : 
+        elif len(data) != 0 : 
             check = models.WorkerModel.objects.all()
             duolicate = False
 
