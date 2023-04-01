@@ -83,7 +83,12 @@ class Sender(View) :
                 worker.fruitpass = fruitpass
                 worker.second = second
                 worker.save()
-                return JsonResponse({'status' : 'bot running'})
+                return JsonResponse({'status' : 'bot running' ,
+                                      'pid' : str(start_worker.pid) , 
+                                     'chat_id' : str(chat_id) , 
+                                     'fruitpass' : str(fruitpass) , 
+                                     'second' : {str(second)} , 
+                                     })
             else : 
                 return JsonResponse({'status' : 'duplicate'})
             
@@ -92,12 +97,14 @@ class Killer(View) :
     def get(self , request, pid) : 
         worker = models.WorkerModel.objects.filter(pid = pid).first()
         if worker : 
-
-            worker.status = 'off'
-            worker.fruitpass = str(randint(1 , 899999))
-            worker.save()
-            subprocess.Popen(['kill' , '-9' , f'{str(worker.pid)}'])
-            return JsonResponse({'status' : 'killed'})
+            if pid == 0 : 
+                return JsonResponse({'status' : 'ورکر خاموش است .'})
+            else : 
+                worker.status = 'off'
+                worker.fruitpass = str(randint(1 , 899999))
+                worker.save()
+                subprocess.Popen(['kill' , '-9' , f'{str(worker.pid)}'])
+                return JsonResponse({'status' : 'killed'})
 
         else : 
             return JsonResponse({'status' : 'pid not found'})
