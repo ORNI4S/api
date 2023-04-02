@@ -83,12 +83,7 @@ class Sender(View) :
                 worker.fruitpass = fruitpass
                 worker.second = second
                 worker.save()
-                return JsonResponse({'status' : 'bot running' ,
-                                      'pid' : str(start_worker.pid) , 
-                                     'chat_id' : str(chat_id) , 
-                                     'fruitpass' : str(fruitpass) , 
-                                     'second' : {str(second)} , 
-                                     })
+                return JsonResponse({'status' : 'bot running' ,'pid' : f'{str(start_worker.pid)}' , 'chat_id' : f'{str(chat_id)}' , 'fruitpass' : f'{str(fruitpass)}' , 'second' : f'{{str(second)}}' })
             else : 
                 return JsonResponse({'status' : 'duplicate'})
             
