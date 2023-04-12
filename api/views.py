@@ -15,8 +15,8 @@ class ServerStatus(View) :
     def get(self , request) : 
         data = models.WorkerModel.objects.all()
         if len(data) == 0 : 
-            models.WorkerModel.objects.create(license_date =datetime.datetime.now() , fruitpass = str(randint(1 , 999)))
-            models.WorkerModel.objects.create(license_date =datetime.datetime.now(), fruitpass = str(randint(1 , 999)))
+            models.WorkerModel.objects.create(license_date =datetime.datetime.now()  ,status = 'off', fruitpass = str(randint(1 , 999)))
+            models.WorkerModel.objects.create(license_date =datetime.datetime.now(),status = 'off' , fruitpass = str(randint(1 , 999)))
         worker1 = models.WorkerModel.objects.first()
         worker2 = models.WorkerModel.objects.last()
         return JsonResponse({

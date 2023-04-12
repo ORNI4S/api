@@ -5,6 +5,7 @@ import django
 django.setup()
 import json
 import subprocess
+import random
 import requests
 from requests import post , get
 import os
@@ -18,6 +19,8 @@ from api.models import WorkerModel
 from datetime import datetime
 
 
+
+
 fruitpass = sys.argv[1]
 logging.basicConfig(level=logging.INFO ,format='%(asctime)s - %(funcName)s - %(message)s')
 def Num1():
@@ -28,6 +31,7 @@ def Num1():
         if delta.days >= 0 :
             if worker.status == 'on' : 
                 try : 
+                    
 
                     r ={'User-Agent' : "Dalvik/2.1.0 (Linux; U; Android 11; SM-A326B Build/TP1A.220624.014)" ,'Connection':'close','Content-Type':"application/x-www-form-urlencoded" ,'Cookie':"FRUITPASSPORT="f"{worker.fruitpass}"}
                     p = {'edata' :'Gk4KXVpRXRJDSEMTfmMXSA=='}

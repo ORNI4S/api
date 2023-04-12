@@ -9,3 +9,7 @@ urlpatterns = [
     path('kill/<int:pid>' , views.Killer.as_view() ,  name='kill_pid')
 ]
 
+
+
+
+#667d340953f5bd85db91f06e2d9c4150
